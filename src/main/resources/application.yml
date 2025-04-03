@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/bitlab_db
+    url: jdbc:postgresql://localhost:5433/bitlab_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -10,3 +10,4 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   liquibase:
     enabled: true
+    change-log: classpath:/db/changelog-master.xml
