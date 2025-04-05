@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="02-insert-initial-data" author="Aslan">
+        <!-- Добавление курсов -->
+        <insert tableName="COURSES">
+            <column name="ID" value="1"/>
+            <column name="NAME" value="Java Developer"/>
+            <column name="DESCRIPTION" value="Полный курс по Java разработке. От основ до профессионального уровня."/>
+            <column name="CREATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="UPDATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <insert tableName="COURSES">
+            <column name="ID" value="2"/>
+            <column name="NAME" value="Python Developer"/>
+            <column name="DESCRIPTION" value="Изучите Python с нуля и станьте профессиональным разработчиком."/>
+            <column name="CREATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="UPDATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- Добавление глав -->
+        <insert tableName="CHAPTERS">
+            <column name="ID" value="1"/>
+            <column name="NAME" value="Введение в Java"/>
+            <column name="DESCRIPTION" value="Знакомство с языком Java и его возможностями."/>
+            <column name="ORDER_NUM" value="1"/>
+            <column name="COURSE_ID" value="1"/>
+            <column name="CREATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="UPDATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <insert tableName="CHAPTERS">
+            <column name="ID" value="2"/>
+            <column name="NAME" value="Условные конструкции if-else"/>
+            <column name="DESCRIPTION" value="Изучение условных конструкций в Java."/>
+            <column name="ORDER_NUM" value="2"/>
+            <column name="COURSE_ID" value="1"/>
+            <column name="CREATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="UPDATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- Добавление уроков -->
+        <insert tableName="LESSONS">
+            <column name="ID" value="1"/>
+            <column name="NAME" value="Установка JDK и IDE"/>
+            <column name="DESCRIPTION" value="Руководство по установке Java Development Kit и IntelliJ IDEA."/>
+            <column name="CONTENT" value="В этом уроке мы узнаем, как установить необходимые инструменты для разработки на Java. Подробное содержание урока здесь..."/>
+            <column name="ORDER_NUM" value="1"/>
+            <column name="CHAPTER_ID" value="1"/>
+            <column name="CREATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="UPDATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <insert tableName="LESSONS">
+            <column name="ID" value="2"/>
+            <column name="NAME" value="Лекция по условным конструкциям"/>
+            <column name="DESCRIPTION" value="Теоретические основы условных конструкций в Java."/>
+            <column name="CONTENT" value="Условные конструкции if-else в Java позволяют выполнять различные блоки кода в зависимости от условия. Подробное содержание урока здесь..."/>
+            <column name="ORDER_NUM" value="1"/>
+            <column name="CHAPTER_ID" value="2"/>
+            <column name="CREATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="UPDATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <insert tableName="LESSONS">
+            <column name="ID" value="3"/>
+            <column name="NAME" value="Практика по условным конструкциям"/>
+            <column name="DESCRIPTION" value="Практические задания по использованию условных конструкций."/>
+            <column name="CONTENT" value="В этом уроке мы решим несколько практических задач с использованием условных конструкций if-else. Подробное содержание урока здесь..."/>
+            <column name="ORDER_NUM" value="2"/>
+            <column name="CHAPTER_ID" value="2"/>
+            <column name="CREATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="UPDATED_TIME" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="01-create-tables" author="Aslan">
+        <createTable tableName="COURSES">
+            <column name="ID" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DESCRIPTION" type="TEXT"/>
+            <column name="CREATED_TIME" type="TIMESTAMP"/>
+            <column name="UPDATED_TIME" type="TIMESTAMP"/>
+        </createTable>
+
+        <createTable tableName="CHAPTERS">
+            <column name="ID" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DESCRIPTION" type="TEXT"/>
+            <column name="ORDER_NUM" type="INT"/>
+            <column name="COURSE_ID" type="BIGINT">
+                <constraints foreignKeyName="FK_CHAPTER_COURSE"
+                             referencedTableName="COURSES"
+                             referencedColumnNames="ID"
+                             nullable="false"/>
+            </column>
+            <column name="CREATED_TIME" type="TIMESTAMP"/>
+            <column name="UPDATED_TIME" type="TIMESTAMP"/>
+        </createTable>
+
+        <createTable tableName="LESSONS">
+            <column name="ID" type="BIGINT">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DESCRIPTION" type="TEXT"/>
+            <column name="CONTENT" type="TEXT"/>
+            <column name="ORDER_NUM" type="INT"/>
+            <column name="CHAPTER_ID" type="BIGINT">
+                <constraints foreignKeyName="FK_LESSON_CHAPTER"
+                             referencedTableName="CHAPTERS"
+                             referencedColumnNames="ID"
+                             nullable="false"/>
+            </column>
+            <column name="CREATED_TIME" type="TIMESTAMP"/>
+            <column name="UPDATED_TIME" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
