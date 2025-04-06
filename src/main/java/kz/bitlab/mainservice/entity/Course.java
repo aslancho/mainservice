@@ -22,8 +22,8 @@ import lombok.EqualsAndHashCode;
 @Table(name = "COURSES")
 public class Course {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "ID")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "courses_seq_gen")
+    @SequenceGenerator(name = "courses_seq_gen", sequenceName = "courses_seq", allocationSize = 1)    @Column(name = "ID")
     private Long id;
 
     @Column(name = "NAME")

@@ -5,8 +5,9 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <include file="classpath:db/changelog/01-create-tables.xml"/>
-    <include file="classpath:db/changelog/02-create-sequences.xml"/>
-    <include file="classpath:db/changelog/03-insert-initial-data.xml"/>
-
+    <changeSet id="02-create-sequences" author="Aslan">
+        <createSequence sequenceName="courses_seq" startValue="1" incrementBy="1"/>
+        <createSequence sequenceName="chapters_seq" startValue="1" incrementBy="1"/>
+        <createSequence sequenceName="lessons_seq" startValue="1" incrementBy="1"/>
+    </changeSet>
 </databaseChangeLog>
