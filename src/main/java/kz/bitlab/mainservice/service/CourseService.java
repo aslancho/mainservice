@@ -5,6 +5,7 @@ import kz.bitlab.mainservice.dto.course.request.CourseCreateDTO;
 import kz.bitlab.mainservice.dto.course.request.CourseUpdateDTO;
 import kz.bitlab.mainservice.dto.course.response.CourseResponseDTO;
 import kz.bitlab.mainservice.entity.Course;
+import kz.bitlab.mainservice.exception.ResourceNotFoundException;
 import kz.bitlab.mainservice.mapper.CourseMapper;
 import kz.bitlab.mainservice.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,9 +32,10 @@ public class CourseService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<CourseResponseDTO> getCourseById(Long id) {
+    public CourseResponseDTO getCourseById(Long id) {
         return courseRepository.findById(id)
-                .map(courseMapper::toResponseDto);
+                .map(courseMapper::toResponseDto)
+                .orElseThrow(() -> ResourceNotFoundException.courseNotFound(id));
     }
 
     public CourseResponseDTO createCourse(CourseCreateDTO courseCreateDTO) {
