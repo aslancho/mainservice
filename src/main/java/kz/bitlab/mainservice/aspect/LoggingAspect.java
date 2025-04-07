@@ -26,10 +26,17 @@ public class LoggingAspect {
         Object[] args = joinPoint.getArgs();
 
         try {
-            Parameter[] params = joinPoint.getTarget().getClass()
-                    .getMethod(methodName, joinPoint.getSignature().getDeclaringType()
-                            .getMethod(methodName, getParameterTypes(args)).getParameterTypes())
-                    .getParameters();
+            // Полное использование параметризованных типов для Class<?>
+            Class<?> targetClass = joinPoint.getTarget().getClass();
+            Class<?> declaringType = joinPoint.getSignature().getDeclaringType();
+            Class<?>[] paramTypes = getParameterTypes(args);
+
+            // Получаем метод объявленного типа
+            java.lang.reflect.Method declaringMethod = declaringType.getMethod(methodName, paramTypes);
+            // Получаем метод целевого класса
+            java.lang.reflect.Method targetMethod = targetClass.getMethod(methodName, declaringMethod.getParameterTypes());
+            // Получаем параметры
+            Parameter[] params = targetMethod.getParameters();
 
             for (int i = 0; i < params.length; i++) {
                 if (i < args.length) {
@@ -37,7 +44,7 @@ public class LoggingAspect {
                     PathVariable pathVariable = params[i].getAnnotation(PathVariable.class);
                     String paramName = (pathVariable != null && !pathVariable.value().isEmpty())
                             ? pathVariable.value()
-                            : (pathVariable != null) ? params[i].getName() : params[i].getName();
+                            : params[i].getName();
                     parameters.put(paramName, args[i]);
                 }
             }
