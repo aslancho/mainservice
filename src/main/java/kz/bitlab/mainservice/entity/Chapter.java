@@ -1,6 +1,8 @@
 package kz.bitlab.mainservice.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -45,4 +47,7 @@ public class Chapter {
 
     @Column(name = "UPDATED_TIME")
     private LocalDateTime updatedTime;
+
+    @OneToMany(mappedBy = "chapter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Lesson> lessons = new ArrayList<>();
 }
