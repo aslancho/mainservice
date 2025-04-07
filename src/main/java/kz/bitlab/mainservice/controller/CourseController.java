@@ -6,8 +6,6 @@ import kz.bitlab.mainservice.dto.course.request.CourseUpdateDTO;
 import kz.bitlab.mainservice.dto.course.response.CourseResponseDTO;
 import kz.bitlab.mainservice.service.CourseService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +17,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CourseController {
 
-    private static final Logger logger = LoggerFactory.getLogger(CourseController.class);
     private final CourseService courseService;
 
     @GetMapping
