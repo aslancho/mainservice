@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Игнорировать локальные конфигурации с секретами
+src/main/resources/application-local.yml

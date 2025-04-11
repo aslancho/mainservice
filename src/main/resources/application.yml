@@ -11,6 +11,12 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog-master.xml
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/bitlab
+          jwk-set-uri: http://localhost:8180/realms/bitlab/protocol/openid-connect/certs
 
 springdoc:
   api-docs:
@@ -26,3 +32,4 @@ logging:
     kz.bitlab: DEBUG
     org.springframework: INFO
     org.hibernate: WARN
+    org.springframework.security: DEBUG  # Добавляем детальное логирование для Spring Security
