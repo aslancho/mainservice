@@ -37,6 +37,23 @@ services:
     networks:
       - bitlab-network
 
+  app:
+    image: aslancho/bitlab-mainservice:latest
+    container_name: bitlab-app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bitlab_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:8080/realms/bitlab
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: http://keycloak:8080/realms/bitlab/protocol/openid-connect/certs
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - keycloak
+    networks:
+      - bitlab-network
+
 volumes:
   postgres-data:
 
