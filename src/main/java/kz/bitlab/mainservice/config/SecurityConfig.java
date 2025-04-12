@@ -30,6 +30,7 @@ public class SecurityConfig {
             "/api-docs.yaml",
             "/swagger-ui/**",
             "/swagger-ui.html",
+            "/api/auth/refresh",
             "/test"
     };
 
