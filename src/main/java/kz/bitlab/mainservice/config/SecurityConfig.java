@@ -65,7 +65,8 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withJwkSetUri("http://keycloak:8080/realms/bitlab/protocol/openid-connect/certs").build();
+        // Использование переменной из конфигурации Spring вместо жестко закодированного URL
+        return NimbusJwtDecoder.withJwkSetUri("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}").build();
     }
 
     // Используем именованный класс вместо лямбды
