@@ -2,8 +2,7 @@ package kz.bitlab.mainservice.service;
 
 import kz.bitlab.mainservice.dto.auth.TokenRefreshRequest;
 import kz.bitlab.mainservice.dto.auth.TokenResponse;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -11,43 +10,52 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
-    @Value("${keycloak.credentials.secret}")
-    private String clientSecret;
-
-    @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
-    private String keycloakIssuerUri;
-
+    private final String clientSecret;
+    private final String keycloakIssuerUri;
     private final WebClient webClient;
 
-    // Конструктор для создания WebClient
-    @Autowired
-    public AuthService(@Value("${keycloak.credentials.secret}") String clientSecret,
-                       @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String keycloakIssuerUri) {
+    public AuthService(
+            @Value("${keycloak.credentials.secret}") String clientSecret,
+            @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String keycloakIssuerUri) {
         this.clientSecret = clientSecret;
         this.keycloakIssuerUri = keycloakIssuerUri;
         this.webClient = WebClient.builder().build();
     }
 
     public TokenResponse refreshToken(TokenRefreshRequest refreshRequest) {
+        log.debug("Refreshing token");
+
         // Построить параметры запроса
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("client_id", "bitlab-client");
+        formData.add("client_id", "bitlab-app"); // изменено с bitlab-client на bitlab-app как в docker-compose
         formData.add("client_secret", clientSecret);
         formData.add("grant_type", "refresh_token");
         formData.add("refresh_token", refreshRequest.getRefreshToken());
 
-        // Отправить запрос в Keycloak
-        return webClient.post()
-                .uri(keycloakIssuerUri + "/protocol/openid-connect/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(formData))
-                .retrieve()
-                .bodyToMono(TokenResponse.class)
-                .block();
+        String tokenUrl = keycloakIssuerUri + "/protocol/openid-connect/token";
+        log.debug("Making request to: {}", tokenUrl);
+
+        try {
+            // Отправить запрос в Keycloak
+            return webClient.post()
+                    .uri(tokenUrl)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(BodyInserters.fromFormData(formData))
+                    .retrieve()
+                    .bodyToMono(TokenResponse.class)
+                    .block();
+        } catch (WebClientResponseException e) {
+            log.error("Error refreshing token: {}", e.getMessage());
+            throw new RuntimeException("Failed to refresh token: " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error during token refresh", e);
+            throw new RuntimeException("Unexpected error during token refresh", e);
+        }
     }
 }

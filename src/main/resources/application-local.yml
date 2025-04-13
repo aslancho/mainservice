@@ -1,4 +1,6 @@
 keycloak:
+  server-url: http://localhost:8180  # Это нужно для AuthService
+  realm: bitlab                      # Это тоже нужно для AuthService
   credentials:
     secret: j5uTH7DnfVXKrjyv2tWFOyhWSh3UYktc
 

@@ -14,15 +14,20 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
+    private String jwkSetUri;
 
     private static final String[] PUBLIC_PATHS = {
             "/api/public/**",
@@ -48,6 +53,7 @@ public class SecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                                .decoder(jwtDecoder())
                         )
                 )
                 .sessionManagement(session -> session
@@ -66,8 +72,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() {
-        // Использование переменной из конфигурации Spring вместо жестко закодированного URL
-        return NimbusJwtDecoder.withJwkSetUri("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}").build();
+        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
     }
 
     // Используем именованный класс вместо лямбды
@@ -81,13 +86,26 @@ public class SecurityConfig {
                 Map<String, Object> realmAccess = jwt.getClaim("realm_access");
                 if (realmAccess.get("roles") != null) {
                     Collection<String> roles = (Collection<String>) realmAccess.get("roles");
-                    for (String role : roles) {
-                        // Проверяем, начинается ли роль уже с ROLE_
-                        if (role.startsWith("ROLE_")) {
-                            grantedAuthorities.add(new SimpleGrantedAuthority(role));
-                        } else {
-                            grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-                        }
+                    grantedAuthorities.addAll(roles.stream()
+                            .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList()));
+                }
+            }
+
+            // Дополнительно можно получать роли из resource_access (для client-specific ролей)
+            if (jwt.getClaim("resource_access") != null) {
+                Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+
+                // Проверяем роли для конкретного клиента (bitlab-app)
+                if (resourceAccess.containsKey("bitlab-app")) {
+                    Map<String, Object> clientAccess = (Map<String, Object>) resourceAccess.get("bitlab-app");
+                    if (clientAccess.containsKey("roles")) {
+                        Collection<String> clientRoles = (Collection<String>) clientAccess.get("roles");
+                        grantedAuthorities.addAll(clientRoles.stream()
+                                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                                .map(SimpleGrantedAuthority::new)
+                                .collect(Collectors.toList()));
                     }
                 }
             }
