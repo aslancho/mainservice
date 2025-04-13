@@ -1,6 +1,6 @@
 package kz.bitlab.mainservice.service;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import kz.bitlab.mainservice.dto.user.request.UserCreateDTO;
 import kz.bitlab.mainservice.dto.user.response.UserResponseDTO;
 import kz.bitlab.mainservice.exception.ResourceNotFoundException;
