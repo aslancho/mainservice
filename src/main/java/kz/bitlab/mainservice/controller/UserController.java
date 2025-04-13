@@ -1,31 +1,104 @@
 package kz.bitlab.mainservice.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import kz.bitlab.mainservice.dto.user.request.UserCreateDTO;
+import kz.bitlab.mainservice.dto.user.response.UserResponseDTO;
+import kz.bitlab.mainservice.service.UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Пользователи", description = "API для управления пользователями")
 public class UserController {
 
-    @GetMapping("/public/test")
-    public String publicEndpoint() {
-        return "Это публичный эндпоинт, доступен всем";
-    }
+    private final UserService userService;
 
-    @GetMapping("/user/info")
-    public String userInfo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return "Авторизованный пользователь: " + authentication.getName() +
-                "\nРоли: " + authentication.getAuthorities();
-    }
-
-    @GetMapping("/admin/test")
+    @Operation(
+            summary = "Создать нового пользователя",
+            description = "Создает нового пользователя в системе. Доступно только для администраторов.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Пользователь успешно создан"),
+            @ApiResponse(responseCode = "400", description = "Некорректные данные пользователя"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public String adminEndpoint() {
-        return "Доступ только для администраторов";
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserCreateDTO userCreateDTO) {
+        log.info("REST request to create a new user: {}", userCreateDTO.getUsername());
+        UserResponseDTO createdUser = userService.createUser(userCreateDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    }
+
+    @Operation(
+            summary = "Получить всех пользователей",
+            description = "Возвращает список всех пользователей. Доступно только для администраторов.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Список пользователей успешно получен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        log.info("REST request to get all users");
+        List<UserResponseDTO> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
+
+    @Operation(
+            summary = "Получить пользователя по ID",
+            description = "Возвращает пользователя по указанному идентификатору. Доступно только для администраторов.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Пользователь успешно получен"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable String id) {
+        log.info("REST request to get user : {}", id);
+        UserResponseDTO user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
+    }
+
+    @Operation(
+            summary = "Удалить пользователя",
+            description = "Удаляет пользователя по указанному идентификатору. Доступно только для администраторов.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Пользователь успешно удален"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+        log.info("REST request to delete user : {}", id);
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }

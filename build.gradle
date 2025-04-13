@@ -47,6 +47,13 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+    // Keycloak Admin Client
+    implementation 'org.keycloak:keycloak-admin-client:22.0.1'
+    implementation 'org.jboss.resteasy:resteasy-client:6.2.4.Final'
+    implementation 'org.jboss.resteasy:resteasy-jackson2-provider:6.2.4.Final'
+
+    implementation 'jakarta.ws.rs:jakarta.ws.rs-api:3.1.0'
+
 }
 
 tasks.named('test') {
