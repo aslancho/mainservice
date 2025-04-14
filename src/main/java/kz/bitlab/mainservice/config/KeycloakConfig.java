@@ -13,15 +13,32 @@ public class KeycloakConfig {
     @Value("${keycloak.server-url}")
     private String serverUrl;
 
+    @Value("${keycloak.realm}")
+    private String realm;
+
+    @Value("${keycloak.credentials.secret}")
+    private String clientSecret;
+
+//    @Bean
+//    public Keycloak keycloakAdmin() {
+//        return KeycloakBuilder.builder()
+//                .serverUrl(serverUrl)
+//                .realm("master") // Используем master realm для админских операций
+//                .grantType(OAuth2Constants.PASSWORD) // Используем прямую аутентификацию
+//                .clientId("admin-cli") // Стандартный клиент для админских операций
+//                .username("admin") // Логин админа Keycloak
+//                .password("admin") // Пароль админа Keycloak
+//                .build();
+//    }
+
     @Bean
     public Keycloak keycloakAdmin() {
         return KeycloakBuilder.builder()
                 .serverUrl(serverUrl)
-                .realm("master") // Используем master realm для админских операций
-                .grantType(OAuth2Constants.PASSWORD) // Используем прямую аутентификацию
-                .clientId("admin-cli") // Стандартный клиент для админских операций
-                .username("admin") // Логин админа Keycloak
-                .password("admin") // Пароль админа Keycloak
+                .realm(realm)
+                .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
+                .clientId("bitlab-app")
+                .clientSecret(clientSecret)
                 .build();
     }
 }
