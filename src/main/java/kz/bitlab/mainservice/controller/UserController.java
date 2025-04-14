@@ -7,10 +7,12 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kz.bitlab.mainservice.dto.user.request.UserCreateDTO;
+import kz.bitlab.mainservice.dto.user.request.UserUpdateDTO;
 import kz.bitlab.mainservice.dto.user.response.UserResponseDTO;
 import kz.bitlab.mainservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -100,5 +102,43 @@ public class UserController {
         log.info("REST request to delete user : {}", id);
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+            summary = "Обновить данные пользователя",
+            description = "Обновляет данные пользователя по указанному идентификатору. Пользователи могут обновлять только свои данные, администраторы могут обновлять данные любого пользователя и их роли.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Данные пользователя успешно обновлены"),
+            @ApiResponse(responseCode = "400", description = "Некорректные данные пользователя"),
+            @ApiResponse(responseCode = "403", description = "Доступ запрещен"),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String id, @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+        log.info("REST request to update user: {}", id);
+        boolean isAdmin = userService.isCurrentUserAdmin();
+        UserResponseDTO updatedUser = userService.updateUser(id, userUpdateDTO, isAdmin);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @Operation(
+            summary = "Получить данные текущего пользователя",
+            description = "Возвращает данные текущего аутентифицированного пользователя.",
+            security = @SecurityRequirement(name = "bearer-jwt")
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Данные пользователя успешно получены"),
+            @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+    })
+    @GetMapping("/profile")
+    public ResponseEntity<UserResponseDTO> getCurrentUserProfile() {
+        log.info("REST request to get current user profile");
+        String currentUserId = userService.getCurrentUserId();
+        UserResponseDTO user = userService.getUserById(currentUserId);
+        return ResponseEntity.ok(user);
     }
 }

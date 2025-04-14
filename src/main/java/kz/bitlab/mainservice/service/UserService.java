@@ -2,7 +2,9 @@ package kz.bitlab.mainservice.service;
 
 import jakarta.ws.rs.core.Response;
 import kz.bitlab.mainservice.dto.user.request.UserCreateDTO;
+import kz.bitlab.mainservice.dto.user.request.UserUpdateDTO;
 import kz.bitlab.mainservice.dto.user.response.UserResponseDTO;
+import kz.bitlab.mainservice.exception.AuthenticationException;
 import kz.bitlab.mainservice.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,10 @@ import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -140,6 +146,129 @@ public class UserService {
             log.error("Failed to delete user with ID {}", userId, e);
             throw new ResourceNotFoundException("User with ID " + userId + " not found or could not be deleted");
         }
+    }
+
+    /**
+     * Обновляет пользовательские данные
+     * @param userId ID пользователя
+     * @param updateDTO DTO с обновленными данными
+     * @param isAdmin флаг, указывающий является ли текущий пользователь администратором
+     * @return обновленные данные пользователя
+     */
+    public UserResponseDTO updateUser(String userId, UserUpdateDTO updateDTO, boolean isAdmin) {
+        log.info("Updating user with ID: {}", userId);
+
+        // Проверяем, обновляет ли пользователь свои собственные данные или администратор обновляет другого пользователя
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUserId = getCurrentUserId();
+
+        if (!isAdmin && !userId.equals(currentUserId)) {
+            log.error("User {} attempted to update another user {}", currentUserId, userId);
+            throw AuthenticationException.accessDenied();
+        }
+
+        RealmResource realmResource = keycloakAdmin.realm(realm);
+        UserResource userResource = realmResource.users().get(userId);
+
+        try {
+            UserRepresentation user = userResource.toRepresentation();
+
+            // Обновляем поля, если они предоставлены
+            if (updateDTO.getUsername() != null && !updateDTO.getUsername().isEmpty()) {
+                user.setUsername(updateDTO.getUsername());
+            }
+
+            if (updateDTO.getEmail() != null && !updateDTO.getEmail().isEmpty()) {
+                user.setEmail(updateDTO.getEmail());
+            }
+
+            if (updateDTO.getFirstName() != null) {
+                user.setFirstName(updateDTO.getFirstName());
+            }
+
+            if (updateDTO.getLastName() != null) {
+                user.setLastName(updateDTO.getLastName());
+            }
+
+            // Обновляем данные пользователя
+            userResource.update(user);
+
+            // Обновляем пароль, если он предоставлен
+            if (updateDTO.getPassword() != null && !updateDTO.getPassword().isEmpty()) {
+                CredentialRepresentation passwordCred = new CredentialRepresentation();
+                passwordCred.setTemporary(false);
+                passwordCred.setType(CredentialRepresentation.PASSWORD);
+                passwordCred.setValue(updateDTO.getPassword());
+                userResource.resetPassword(passwordCred);
+            }
+
+            // Обновляем роли только если текущий пользователь - администратор
+            if (isAdmin && updateDTO.getRoles() != null && !updateDTO.getRoles().isEmpty()) {
+                try {
+                    // Получаем все текущие роли пользователя
+                    List<RoleRepresentation> currentRoles = userResource.roles().realmLevel().listAll();
+
+                    // Удаляем все текущие роли, если они есть
+                    if (currentRoles != null && !currentRoles.isEmpty()) {
+                        userResource.roles().realmLevel().remove(currentRoles);
+                    }
+
+                    // Добавляем новые роли
+                    List<RoleRepresentation> rolesToAdd = new ArrayList<>();
+                    for (String roleName : updateDTO.getRoles()) {
+                        try {
+                            // Проверка существования роли перед добавлением
+                            RoleRepresentation role = realmResource.roles().get(roleName).toRepresentation();
+                            rolesToAdd.add(role);
+                            log.debug("Добавление роли: {}", roleName);
+                        } catch (Exception e) {
+                            log.warn("Роль {} не найдена в Keycloak, пропускаем", roleName);
+                        }
+                    }
+
+                    if (!rolesToAdd.isEmpty()) {
+                        userResource.roles().realmLevel().add(rolesToAdd);
+                    }
+                } catch (Exception e) {
+                    log.error("Ошибка при обновлении ролей пользователя: {}", e.getMessage());
+                    // Продолжаем выполнение - обновляем пользователя даже если обновление ролей не удалось
+                }
+            }
+
+            // Получаем обновленную информацию о пользователе
+            UserRepresentation updatedUser = userResource.toRepresentation();
+            Set<String> roles = getUserRoles(userId);
+
+            return mapToUserResponseDTO(updatedUser, roles);
+        } catch (Exception e) {
+            log.error("Failed to update user with ID {}", userId, e);
+            throw new ResourceNotFoundException("User with ID " + userId + " not found or could not be updated");
+        }
+    }
+
+    /**
+     * Получает ID текущего аутентифицированного пользователя из токена JWT
+     */
+    public String getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt) {
+            Jwt jwt = (Jwt) authentication.getPrincipal();
+            return jwt.getSubject();
+        }
+        throw new AuthenticationException("Не удалось определить текущего пользователя");
+    }
+
+    /**
+     * Проверяет, является ли текущий пользователь администратором
+     */
+    public boolean isCurrentUserAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            return authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(authority -> authority.equals("ROLE_ADMIN"));
+        }
+        return false;
     }
 
     /**
