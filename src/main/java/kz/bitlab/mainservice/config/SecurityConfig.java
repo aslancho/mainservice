@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers(PUBLIC_PATHS).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/courses/**", "/api/chapters/**", "/api/lessons/**")
+                        .requestMatchers("/api/courses/**", "/api/chapters/**", "/api/lessons/**", "api/users")
                         .hasAnyRole("USER", "ADMIN", "TEACHER")
                         .anyRequest().authenticated()
                 )
