@@ -9,6 +9,7 @@ import kz.bitlab.mainservice.exception.ResourceNotFoundException;
 import kz.bitlab.mainservice.mapper.ChapterMapper;
 import kz.bitlab.mainservice.repository.ChapterRepository;
 import kz.bitlab.mainservice.repository.CourseRepository;
+import kz.bitlab.mainservice.service.impl.ChapterServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,7 +39,7 @@ class ChapterServiceTest {
     private ChapterMapper chapterMapper;
 
     @InjectMocks
-    private ChapterService chapterService;
+    private ChapterServiceImpl chapterService;
 
     private Course course;
     private Chapter chapter;

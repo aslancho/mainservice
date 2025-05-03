@@ -8,6 +8,7 @@ import kz.bitlab.mainservice.entity.Course;
 import kz.bitlab.mainservice.exception.ResourceNotFoundException;
 import kz.bitlab.mainservice.mapper.CourseMapper;
 import kz.bitlab.mainservice.repository.CourseRepository;
+import kz.bitlab.mainservice.service.impl.CourseServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +35,7 @@ class CourseServiceTest {
     private CourseMapper courseMapper;
 
     @InjectMocks
-    private CourseService courseService;
+    private CourseServiceImpl courseService;
 
     private Course course;
     private CourseResponseDTO courseResponseDTO;

@@ -6,7 +6,7 @@ import kz.bitlab.mainservice.dto.chapter.request.ChapterUpdateDTO;
 import kz.bitlab.mainservice.dto.chapter.response.ChapterResponseDTO;
 import kz.bitlab.mainservice.exception.GlobalExceptionHandler;
 import kz.bitlab.mainservice.exception.ResourceNotFoundException;
-import kz.bitlab.mainservice.service.ChapterService;
+import kz.bitlab.mainservice.service.impl.ChapterServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +34,7 @@ class ChapterControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private ChapterService chapterService;
+    private ChapterServiceImpl chapterService;
 
     @InjectMocks
     private ChapterController chapterController;

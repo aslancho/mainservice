@@ -5,7 +5,7 @@ import kz.bitlab.mainservice.dto.course.request.CourseCreateDTO;
 import kz.bitlab.mainservice.dto.course.request.CourseUpdateDTO;
 import kz.bitlab.mainservice.dto.course.response.CourseResponseDTO;
 import kz.bitlab.mainservice.exception.ResourceNotFoundException;
-import kz.bitlab.mainservice.service.CourseService;
+import kz.bitlab.mainservice.service.impl.CourseServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,7 +32,7 @@ class CourseControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private CourseService courseService;
+    private CourseServiceImpl courseService;
 
     @InjectMocks
     private CourseController courseController;

@@ -12,7 +12,6 @@ import kz.bitlab.mainservice.dto.user.response.UserResponseDTO;
 import kz.bitlab.mainservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
