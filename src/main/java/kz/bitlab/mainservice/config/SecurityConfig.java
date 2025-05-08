@@ -3,9 +3,11 @@ package kz.bitlab.mainservice.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -19,7 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -42,12 +43,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authz -> authz
+                        // Публичные маршруты
                         .requestMatchers(PUBLIC_PATHS).permitAll()
+
+                        // Админ роуты
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/courses/**", "/api/chapters/**", "/api/lessons/**", "api/users")
-                        .hasAnyRole("USER", "ADMIN", "TEACHER")
+
+                        // --- Курсы ---
+                        .requestMatchers(HttpMethod.GET, "/api/courses/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/courses/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/courses/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/courses/**").hasRole("ADMIN")
+
+                        // --- Главы ---
+                        .requestMatchers(HttpMethod.GET, "/api/chapters/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/chapters/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/chapters/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/chapters/**").hasRole("ADMIN")
+
+                        // --- Уроки ---
+                        .requestMatchers(HttpMethod.GET, "/api/lessons/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/lessons/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/lessons/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/lessons/**").hasRole("ADMIN")
+
+                        // --- Пользователи (например, просмотр или редактирование своего профиля) ---
+                        .requestMatchers("/api/users/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+
+                        // Всё остальное — требует аутентификации
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
@@ -81,36 +106,34 @@ public class SecurityConfig {
         public Collection<GrantedAuthority> convert(Jwt jwt) {
             Collection<GrantedAuthority> grantedAuthorities = new ArrayList<>();
 
-            // Получаем роли из клейма realm_access.roles (стандартный формат Keycloak)
-            if (jwt.getClaim("realm_access") != null) {
-                Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-                if (realmAccess.get("roles") != null) {
-                    Collection<String> roles = (Collection<String>) realmAccess.get("roles");
-                    grantedAuthorities.addAll(roles.stream()
-                            .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList()));
-                }
+            // Добавляем роли из realm_access
+            Object realmAccessObj = jwt.getClaim("realm_access");
+            if (realmAccessObj instanceof Map<?, ?> realmAccess) {
+                addRolesFromClaim(realmAccess.get("roles"), grantedAuthorities);
             }
 
-            // Дополнительно можно получать роли из resource_access (для client-specific ролей)
-            if (jwt.getClaim("resource_access") != null) {
-                Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-
-                // Проверяем роли для конкретного клиента (bitlab-app)
-                if (resourceAccess.containsKey("bitlab-app")) {
-                    Map<String, Object> clientAccess = (Map<String, Object>) resourceAccess.get("bitlab-app");
-                    if (clientAccess.containsKey("roles")) {
-                        Collection<String> clientRoles = (Collection<String>) clientAccess.get("roles");
-                        grantedAuthorities.addAll(clientRoles.stream()
-                                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                                .map(SimpleGrantedAuthority::new)
-                                .collect(Collectors.toList()));
-                    }
+            // Добавляем роли из resource_access["bitlab-app"]
+            Object resourceAccessObj = jwt.getClaim("resource_access");
+            if (resourceAccessObj instanceof Map<?, ?> resourceAccess) {
+                Object clientAccessObj = resourceAccess.get("bitlab-app");
+                if (clientAccessObj instanceof Map<?, ?> clientAccess) {
+                    addRolesFromClaim(clientAccess.get("roles"), grantedAuthorities);
                 }
             }
 
             return grantedAuthorities;
+        }
+
+        private void addRolesFromClaim(Object rolesObj, Collection<GrantedAuthority> grantedAuthorities) {
+            if (rolesObj instanceof Collection<?> roles) {
+                for (Object r : roles) {
+                    if (r instanceof String role) {
+                        grantedAuthorities.add(new SimpleGrantedAuthority(
+                                role.startsWith("ROLE_") ? role : "ROLE_" + role
+                        ));
+                    }
+                }
+            }
         }
     }
 }

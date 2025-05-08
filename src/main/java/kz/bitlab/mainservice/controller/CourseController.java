@@ -12,6 +12,7 @@ import kz.bitlab.mainservice.service.CourseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,6 +52,7 @@ public class CourseController {
             @ApiResponse(responseCode = "400", description = "Некорректные данные курса")
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CourseResponseDTO> createCourse(@Valid @RequestBody CourseCreateDTO courseCreateDTO) {
         CourseResponseDTO savedCourse = courseService.createCourse(courseCreateDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedCourse);
@@ -63,6 +65,7 @@ public class CourseController {
             @ApiResponse(responseCode = "400", description = "Некорректные данные курса")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CourseResponseDTO> updateCourse(@PathVariable Long id, @Valid @RequestBody CourseUpdateDTO courseUpdateDTO) {
         // Установка id из пути в DTO, если он не был установлен
         courseUpdateDTO.setId(id);
@@ -77,6 +80,7 @@ public class CourseController {
             @ApiResponse(responseCode = "404", description = "Курс не найден")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
         courseService.deleteCourse(id);
         return ResponseEntity.noContent().build();
