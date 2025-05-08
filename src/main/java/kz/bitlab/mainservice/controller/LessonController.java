@@ -12,6 +12,7 @@ import kz.bitlab.mainservice.service.LessonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -52,6 +53,7 @@ public class LessonController {
             @ApiResponse(responseCode = "404", description = "Глава не найдена")
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LessonResponseDTO> createLesson(@Valid @RequestBody LessonCreateDTO lessonCreateDTO) {
         LessonResponseDTO savedLesson = lessonService.createLesson(lessonCreateDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedLesson);
@@ -64,6 +66,7 @@ public class LessonController {
             @ApiResponse(responseCode = "400", description = "Некорректные данные урока")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<LessonResponseDTO> updateLesson(@PathVariable Long id, @Valid @RequestBody LessonUpdateDTO lessonUpdateDTO) {
         // Установка id из пути в DTO, если он не был установлен
         lessonUpdateDTO.setId(id);
@@ -78,6 +81,7 @@ public class LessonController {
             @ApiResponse(responseCode = "404", description = "Урок не найден")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteLesson(@PathVariable Long id) {
         lessonService.deleteLesson(id);
         return ResponseEntity.noContent().build();

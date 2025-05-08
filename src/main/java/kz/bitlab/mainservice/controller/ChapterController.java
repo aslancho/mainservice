@@ -12,6 +12,7 @@ import kz.bitlab.mainservice.service.ChapterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -52,6 +53,7 @@ public class ChapterController {
             @ApiResponse(responseCode = "404", description = "Курс не найден")
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ChapterResponseDTO> createChapter(@Valid @RequestBody ChapterCreateDTO chapterCreateDTO) {
         ChapterResponseDTO savedChapter = chapterService.createChapter(chapterCreateDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedChapter);
@@ -64,6 +66,7 @@ public class ChapterController {
             @ApiResponse(responseCode = "400", description = "Некорректные данные главы")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ChapterResponseDTO> updateChapter(@PathVariable Long id, @Valid @RequestBody ChapterUpdateDTO chapterUpdateDTO) {
         // Установка id из пути в DTO, если он не был установлен
         chapterUpdateDTO.setId(id);
@@ -78,6 +81,7 @@ public class ChapterController {
             @ApiResponse(responseCode = "404", description = "Глава не найдена")
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteChapter(@PathVariable Long id) {
         chapterService.deleteChapter(id);
         return ResponseEntity.noContent().build();
