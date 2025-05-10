@@ -18,6 +18,12 @@ spring:
           issuer-uri: http://localhost:8180/realms/bitlab
           jwk-set-uri: http://localhost:8180/realms/bitlab/protocol/openid-connect/certs
 
+keycloak:
+  server-url: http://localhost:8180  # Это нужно для AuthService
+  realm: bitlab                      # Это тоже нужно для AuthService
+  credentials:
+    secret: j5uTH7DnfVXKrjyv2tWFOyhWSh3UYktc
+
 springdoc:
   api-docs:
     path: /api-docs

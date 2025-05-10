@@ -37,26 +37,51 @@ services:
     networks:
       - bitlab-network
 
-  app:
-    image: aslancho/bitlab-mainservice:latest
-    container_name: bitlab-app
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bitlab_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:8080/realms/bitlab
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: http://keycloak:8080/realms/bitlab/protocol/openid-connect/certs
-
+  minio:
+    image: minio/minio
+    container_name: minio
     ports:
-      - "8080:8080"
+      - "9000:9000"   # веб-интерфейс и API
+      - "9001:9001"   # админ-панель
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    command: server --console-address ":9001" /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks:
+      - bitlab-network
+
+  createbucket:
+    image: minio/mc
+    container_name: createbucket
     depends_on:
-      - postgres
-      - keycloak
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        echo '⏳ Ожидаем MinIO...';
+        until curl -s http://minio:9000/minio/health/live; do
+          sleep 1;
+        done;
+        echo '✅ MinIO готов, создаём bucket...';
+        mc alias set myminio http://minio:9000 minioadmin minioadmin --insecure &&
+        mc mb myminio/mybucket &&
+        mc anonymous set upload myminio/mybucket &&
+        mc anonymous set download myminio/mybucket;
+        echo '🏁 Всё готово.';
+      "
     networks:
       - bitlab-network
 
 volumes:
   postgres-data:
+  minio-data:
 
 networks:
   bitlab-network:
