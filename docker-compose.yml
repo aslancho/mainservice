@@ -61,20 +61,17 @@ services:
     image: minio/mc
     container_name: createbucket
     depends_on:
-      minio:
-        condition: service_healthy
+      - minio
     entrypoint: >
       /bin/sh -c "
         echo '⏳ Ожидаем MinIO...';
-        until curl -s http://minio:9000/minio/health/live; do
-          sleep 1;
-        done;
-        echo '✅ MinIO готов, создаём bucket...';
-        mc alias set myminio http://minio:9000 minioadmin minioadmin --insecure &&
-        mc mb myminio/mybucket &&
-        mc anonymous set upload myminio/mybucket &&
+        sleep 10;
+        echo '✅ Пытаемся создать бакет...';
+        mc alias set myminio http://minio:9000 minioadmin minioadmin;
+        mc mb myminio/mybucket --ignore-existing;
         mc anonymous set download myminio/mybucket;
-        echo '🏁 Всё готово.';
+        mc anonymous set upload myminio/mybucket;
+        echo '🏁 Все готово.';
       "
     networks:
       - bitlab-network

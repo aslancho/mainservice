@@ -69,6 +69,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/lessons/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/lessons/**").hasRole("ADMIN")
 
+                        // --- Вложения ---
+                        .requestMatchers(HttpMethod.GET, "/api/attachments/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/attachments/**").hasAnyRole("ADMIN", "TEACHER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/attachments/**").hasAnyRole("ADMIN", "TEACHER")
+
                         // --- Пользователи (например, просмотр или редактирование своего профиля) ---
                         .requestMatchers("/api/users/**").hasAnyRole("USER", "TEACHER", "ADMIN")
 

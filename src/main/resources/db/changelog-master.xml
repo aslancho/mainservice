@@ -8,5 +8,6 @@
     <include file="classpath:db/changelog/01-create-tables.xml"/>
     <include file="classpath:db/changelog/02-create-sequences.xml"/>
     <include file="classpath:db/changelog/03-insert-initial-data.xml"/>
+    <include file="classpath:db/changelog/04-create-attachments-table.xml"/>
 
 </databaseChangeLog>
